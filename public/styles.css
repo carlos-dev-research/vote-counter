@@ -1,0 +1,6 @@
+/* Shared styles for all pages. Mobile-first: voters use phones. */
+:root { --fg: #1a1a1a; --bg: #ffffff; --muted: #666; --accent: #772432; }
+@media (prefers-color-scheme: dark) { :root { --fg: #eee; --bg: #121212; --muted: #aaa; } }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; color: var(--fg); background: var(--bg); }
+main { max-width: 40rem; margin: 0 auto; padding: 1rem; }
