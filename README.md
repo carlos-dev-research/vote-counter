@@ -5,6 +5,7 @@ A simple app for voting during Toastmasters sessions, hosted on Cloudflare (Work
 - Agents: start with [CLAUDE.md](CLAUDE.md)
 - Every file is described in [MAP.md](MAP.md)
 - Design details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Deploying to Cloudflare: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ## Run locally
 
@@ -31,8 +32,10 @@ office at `http://<your-computer-ip>:8787/admin` so the QR code contains that ad
 ## Deploy
 
 ```sh
-bunx wrangler d1 create vote-counter   # paste the database_id into wrangler.jsonc
-bun run db:migrate:remote
-bunx wrangler secret put ADMIN_EMAIL   # also ADMIN_PASSWORD and SESSION_SECRET
-bun run deploy
+bun run ship:check   # dry run: all checks, nothing changes
+bun run ship         # deploy committed + pushed main to Cloudflare
 ```
+
+The first run creates the Cloudflare resources (database, custom domain, secrets); later runs
+only deploy new code and new migrations, never overwriting data. Details:
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).

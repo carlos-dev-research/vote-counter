@@ -26,8 +26,8 @@ Pages project and no separate API service.
 Bun is the **tooling** runtime: package manager, client bundler (`bun build`), test runner,
 and script runner for Wrangler. The **backend runs on Cloudflare's Workers runtime
 (workerd)**, not Bun, so server code may use only Web-standard APIs and Workers bindings.
-`BUN_VERSION` pins the Bun used for local work and for Cloudflare Workers Builds (CI),
-where it is set as a build environment variable.
+`BUN_VERSION` pins the Bun used for local work and for deploys: `bun run ship` checks it before
+deploying (see [DEPLOYMENT.md](DEPLOYMENT.md)).
 
 ## Data model (D1)
 
@@ -139,7 +139,8 @@ Plain HTML pages in `public/`, each with one bundled script:
 
 | Name             | Where                         | Purpose                                   |
 |------------------|-------------------------------|-------------------------------------------|
-| `BUN_VERSION`    | `.env`, Workers Builds env    | Pinned Bun version for build and tooling  |
+| `BUN_VERSION`    | `.env.example`                | Pinned Bun version, checked by `bun run ship` |
+| Hostname         | `wrangler.jsonc` `routes`     | Production custom domain (set by the first `bun run ship`) |
 | `ADMIN_EMAIL`    | `.env` / `wrangler secret`    | Admin username                            |
 | `ADMIN_PASSWORD` | `.env` / `wrangler secret`    | Admin password                            |
 | `SESSION_SECRET` | `.env` / `wrangler secret`    | HMAC key for session and device cookies   |

@@ -161,3 +161,6 @@ vite.config.ts.timestamp-*
 .dev.vars
 .wrangler/
 public/assets/
+
+# production database backups made by `bun run ship` (contain voter data)
+backups/

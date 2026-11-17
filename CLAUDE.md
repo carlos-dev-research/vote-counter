@@ -31,6 +31,11 @@ A simple web application used to vote during Toastmasters sessions.
 6. **Schema changes are new migrations.** Never edit an applied file in `migrations/`; add
    the next numbered one.
 
+7. **Deploy only with `bun run ship`.** It deploys only committed, pushed `main`, never overwrites
+   data or existing secrets, and applies new migrations after a backup. Migrations must be
+   additive (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#keeping-data-safe)). Never run
+   `wrangler deploy` or remote D1 commands directly unless the user asks.
+
 ## Security rules (always)
 
 - **SQL:** bound parameters (`?` + `.bind()`) only, and SQL only in `src/worker/lib/db.ts`.
@@ -71,16 +76,13 @@ bun run db:migrate:remote   # apply migrations to production D1
 bun run typecheck           # tsc for worker code, then for browser code (src/client/tsconfig.json)
 bun test                    # unit tests (pure functions only)
 bun run smoke               # end-to-end test against the running dev server (--keep to inspect)
-bun run deploy              # build, then wrangler deploy
+bun run ci:build            # typecheck + tests + bundle (the gate `ship` runs before deploying)
+bun run ship:check          # dry run of the deploy: all checks, nothing changes
+bun run ship                # production deploy (first run creates the Cloudflare resources)
 ```
 
-Production secrets (run once per secret):
-
-```sh
-bunx wrangler secret put ADMIN_EMAIL
-bunx wrangler secret put ADMIN_PASSWORD
-bunx wrangler secret put SESSION_SECRET
-```
+Production secrets are set by `bun run ship` on the first run; to change one later:
+`bunx wrangler secret put <NAME>`.
 
 ## Before finishing a change
 

@@ -37,10 +37,11 @@ Status: `[x]` done · `[ ]` pending
       vote from two devices, reject duplicates and bad input, close, check results
 - [ ] Manual check in a browser (desktop and phone on the same Wi-Fi)
 
-## Phase 5: Release (after v0.1 is verified locally)
-- [ ] `wrangler d1 create`, set the real `database_id`, `db:migrate:remote`
-- [ ] `wrangler secret put` ADMIN_EMAIL / ADMIN_PASSWORD / SESSION_SECRET
-- [ ] `bun run deploy`; optional custom domain and Workers Builds with `BUN_VERSION`
+## Phase 5: Release (after v0.1 is verified locally; follow [DEPLOYMENT.md](DEPLOYMENT.md))
+- [x] `bun run ship` deploy script (creates resources once, safe re-runs, backups, tags)
+- [ ] First `bun run ship`: login, D1 created, subdomain set, secrets, deployed
+- [ ] Verify in production (phone + `bun run ship --smoke`)
+- [ ] Optional: login rate-limiting rule
 
 ## Rules decided for v0.1
 - Lifecycle `draft → open → closed`, plus `closed → open` (reopen) for mistakes.

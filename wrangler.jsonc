@@ -5,6 +5,12 @@
   "compatibility_date": "2026-11-01",
   "observability": { "enabled": true },
 
+  // Production is served only on the custom domain below (the QR codes use it).
+  // The REPLACE_WITH_* placeholders are filled in by `bun run ship` on its first run.
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "REPLACE_WITH_HOSTNAME", "custom_domain": true }],
+
   // Static front end from public/. The Worker runs first only for the API and the voter page.
   "assets": {
     "directory": "./public",
@@ -12,7 +18,6 @@
     "run_worker_first": ["/api/*", "/v/*"]
   },
 
-  // Create with: bunx wrangler d1 create vote-counter, then paste the database_id here.
   "d1_databases": [
     {
       "binding": "DB",
