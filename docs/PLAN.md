@@ -29,7 +29,7 @@ Status: `[x]` done · `[ ]` pending
 - [x] Login page
 - [x] Back office: campaign list and create; detail with open/close/reopen/delete, quick-add default
       categories, candidates, live counts (3 s polling), QR with copy link, download, and present mode
-- [x] Voter page: not open yet (auto-refresh), ballot, already-voted and thank-you state, results with winners
+- [x] Voter page: not open yet, ballot, already-voted and thank-you state, results with winners (manual Refresh button, no polling)
 
 ## Phase 4: Testing
 - [x] Unit tests (`bun test`): crypto, validation, ballot/results logic

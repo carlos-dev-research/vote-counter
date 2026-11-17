@@ -1,16 +1,14 @@
 // Voter page (public/vote.html, served at /v/:slug). Shows: not open yet → ballot → thanks → results.
+// No automatic polling (keeps usage minimal): voters refresh the page or tap "Refresh" to see changes.
 import type { BallotCategory, MyVotes, PublicCampaign, ResultCategory } from "../shared/types";
 import { api, ApiError } from "./api";
 import { bar, h, mount } from "./dom";
 
-const REFRESH_MS = 5000;
 const root = document.getElementById("app") as HTMLElement;
 const slug = location.pathname.split("/")[2] ?? "";
-let timer: ReturnType<typeof setTimeout> | undefined;
 
-/** Loads the campaign and renders the right view. `poll` re-checks later (waiting screens only). */
+/** Loads the campaign and renders the right view. */
 async function load(): Promise<void> {
-  clearTimeout(timer);
   try {
     const state = await api<PublicCampaign>(`/api/campaigns/${encodeURIComponent(slug)}`);
     document.title = `${state.name} · Vote`;
@@ -19,21 +17,33 @@ async function load(): Promise<void> {
     if (e instanceof ApiError && e.status === 404) {
       mount(root, message("🤔", "Campaign not found", "Check the QR code or link and try again."));
     } else {
-      mount(root, message("📶", "Couldn't load", (e as Error).message));
-      timer = setTimeout(load, REFRESH_MS);
+      mount(root, message("📶", "Couldn't load", (e as Error).message, refreshButton()));
     }
   }
 }
 
+/** Reloads the campaign state (same as refreshing the browser, without a full page reload). */
+function refreshButton(label = "Refresh"): HTMLButtonElement {
+  const btn = h("button", { class: "btn primary block", type: "button" }, label);
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    btn.textContent = "Checking…";
+    await load();
+  });
+  return btn;
+}
+
 function render(state: PublicCampaign): void {
   if (state.status === "draft") {
-    mount(root, header(state.name), message("⏳", "Voting hasn't started yet", "This page will update automatically."));
-    timer = setTimeout(load, REFRESH_MS);
+    mount(
+      root,
+      header(state.name),
+      message("⏳", "Voting hasn't started yet", "Tap Refresh when the organizer opens voting.", refreshButton()),
+    );
   } else if (state.status === "open") {
     const pending = state.categories.filter((c) => !(c.id in state.myVotes));
     if (pending.length === 0) {
       mount(root, header(state.name), thanks(state.categories, state.myVotes));
-      timer = setTimeout(load, REFRESH_MS); // switch to results when voting closes
     } else {
       mount(root, header(state.name), ballot(state.categories, state.myVotes));
     }
@@ -46,13 +56,14 @@ function header(name: string, eyebrow = "Vote"): HTMLElement {
   return h("header", { class: "vote-header" }, h("div", { class: "eyebrow" }, eyebrow), h("h1", {}, name));
 }
 
-function message(icon: string, title: string, text: string): HTMLElement {
+function message(icon: string, title: string, text: string, action?: HTMLElement): HTMLElement {
   return h(
     "section",
-    { class: "card center" },
+    { class: "card center stack" },
     h("div", { class: "big-icon", "aria-hidden": "true" }, icon),
     h("h2", {}, title),
     h("p", { class: "muted" }, text),
+    action,
   );
 }
 
@@ -128,7 +139,12 @@ function thanks(categories: BallotCategory[], myVotes: MyVotes): HTMLElement {
   return h(
     "div",
     {},
-    message("🎉", "Thanks for voting!", "Results will appear on this page when voting closes."),
+    message(
+      "🎉",
+      "Thanks for voting!",
+      "When the organizer closes voting, tap Refresh to see the results.",
+      refreshButton("Refresh results"),
+    ),
     h(
       "section",
       { class: "card" },

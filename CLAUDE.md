@@ -70,7 +70,7 @@ A simple web application used to vote during Toastmasters sessions.
 bun run setup               # first time: create .env from the example, install, migrate local D1
 bun install                 # install dependencies
 bun run build               # bundle src/client/*.ts -> public/assets/
-bun run dev                 # build, then wrangler dev (local Worker + local D1)
+bun run dev                 # build, apply local migrations, then wrangler dev (local Worker + local D1)
 bun run db:migrate:local    # apply migrations to local D1
 bun run db:migrate:remote   # apply migrations to production D1
 bun run typecheck           # tsc for worker code, then for browser code (src/client/tsconfig.json)

@@ -7,7 +7,7 @@
   "scripts": {
     "setup": "test -f .env || cp .env.example .env; bun install && bun run db:migrate:local",
     "build": "bun build src/client/login.ts src/client/admin.ts src/client/vote.ts --outdir public/assets --target browser --minify",
-    "dev": "bun run build && bunx wrangler dev",
+    "dev": "bun run build && bun run db:migrate:local && bunx wrangler dev",
     "ship": "bun run scripts/ship.ts",
     "ship:check": "bun run scripts/ship.ts --dry-run",
     "ci:build": "bun run typecheck && bun test && bun run build",

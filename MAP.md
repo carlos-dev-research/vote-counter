@@ -67,7 +67,7 @@ this map in the same change. Generated or ignored paths (`node_modules/`, `.wran
 | `src/client/api.ts`      | `api()` fetch wrapper for the JSON API; throws `ApiError` with the server's message. |
 | `src/client/login.ts`    | Script for `login.html`: submits credentials, then redirects to `/admin`. |
 | `src/client/admin.ts`    | Script for `admin.html`: campaign list and create; detail with open/close/reopen/delete, quick-add categories, candidates, live counts (3 s polling), QR (copy, download, present full screen). |
-| `src/client/vote.ts`     | Script for `vote.html`: reads the slug from `/v/:slug`; not open yet (auto-refresh), ballot, thank-you, results with winners. |
+| `src/client/vote.ts`     | Script for `vote.html`: reads the slug from `/v/:slug`; not open yet, ballot, thank-you, results with winners. No auto-refresh: voters reload or tap Refresh. |
 
 ## public/ (static files served as-is by Workers Static Assets)
 

@@ -83,7 +83,9 @@ draft ──open──► open ──close──► closed
 | DELETE | `/api/admin/candidates/:id`                   | Remove candidate                 |
 | GET    | `/api/admin/campaigns/:id/qr.svg`             | QR code (SVG) for `https://<host>/v/<slug>` |
 
-The back office polls `GET /api/admin/campaigns/:id` every few seconds to show live counts.
+The back office polls `GET /api/admin/campaigns/:id` every 3 seconds to show live counts (one
+admin, cheap). The voter page does **not** poll: voters reload or tap **Refresh** to see when
+voting opens or results appear. This keeps Worker requests and D1 reads minimal.
 
 ## Authentication (back office)
 
