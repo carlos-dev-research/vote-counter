@@ -9,7 +9,7 @@
   // The REPLACE_WITH_* placeholders are filled in by `bun run ship` on its first run.
   "workers_dev": false,
   "preview_urls": false,
-  "routes": [{ "pattern": "REPLACE_WITH_HOSTNAME", "custom_domain": true }],
+  "routes": [{ "pattern": "vote.carlos-dev-research.com", "custom_domain": true }],
 
   // Static front end from public/. The Worker runs first only for the API and the voter page.
   "assets": {
@@ -22,7 +22,7 @@
     {
       "binding": "DB",
       "database_name": "vote-counter",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "9da580b4-8daa-4479-99b2-8af55e5f8ce6",
       "migrations_dir": "migrations"
     }
   ]
