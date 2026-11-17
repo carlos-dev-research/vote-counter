@@ -6,12 +6,33 @@ A simple app for voting during Toastmasters sessions, hosted on Cloudflare (Work
 - Every file is described in [MAP.md](MAP.md)
 - Design details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-## Quick start
+## Run locally
 
 ```sh
-cp .env.example .env              # then edit the values
-bun install
+bun run setup      # creates .env from .env.example, installs, creates the local database
+                   # then edit .env: ADMIN_EMAIL, ADMIN_PASSWORD, SESSION_SECRET
+bun run dev        # http://localhost:8787
+```
+
+- Back office: http://localhost:8787/admin (sign in with the values in `.env`)
+- Voters: scan the QR code shown in the back office
+
+## Test
+
+```sh
+bun run typecheck && bun test   # types + unit tests
+bun run smoke                   # end-to-end, with `bun run dev` running in another terminal
+bun run smoke --keep            # same, but keeps the campaign so you can look at it in the UI
+```
+
+To try it from a phone on the same Wi-Fi: `bunx wrangler dev --ip 0.0.0.0`, then open the back
+office at `http://<your-computer-ip>:8787/admin` so the QR code contains that address.
+
+## Deploy
+
+```sh
 bunx wrangler d1 create vote-counter   # paste the database_id into wrangler.jsonc
-bun run db:migrate:local
-bun run dev
+bun run db:migrate:remote
+bunx wrangler secret put ADMIN_EMAIL   # also ADMIN_PASSWORD and SESSION_SECRET
+bun run deploy
 ```

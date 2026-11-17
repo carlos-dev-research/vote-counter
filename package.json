@@ -5,11 +5,13 @@
   "type": "module",
   "packageManager": "bun@1.4.4",
   "scripts": {
+    "setup": "test -f .env || cp .env.example .env; bun install && bun run db:migrate:local",
     "build": "bun build src/client/login.ts src/client/admin.ts src/client/vote.ts --outdir public/assets --target browser --minify",
     "dev": "bun run build && bunx wrangler dev",
     "deploy": "bun run build && bunx wrangler deploy",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p src/client",
     "test": "bun test",
+    "smoke": "bun run scripts/smoke.ts",
     "db:migrate:local": "bunx wrangler d1 migrations apply vote-counter --local",
     "db:migrate:remote": "bunx wrangler d1 migrations apply vote-counter --remote",
     "cf-typegen": "bunx wrangler types"

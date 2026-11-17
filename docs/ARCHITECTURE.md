@@ -44,11 +44,17 @@ Vote counts are computed with `COUNT(*) … GROUP BY candidate_id`. There is no 
 
 ```
 draft ──open──► open ──close──► closed
+                  ▲                │
+                  └────reopen──────┘
 ```
 
 - **draft:** the admin edits categories and candidates. The public page says "not open yet".
-- **open:** voting allowed. The admin can't change categories or candidates.
-- **closed:** voting rejected. The public page (same QR) shows the results.
+  Opening requires at least one category, and every category needs at least one candidate.
+- **open:** voting allowed. Categories and candidates can still be **added** (a late speaker)
+  but not deleted, so no votes are ever removed silently.
+- **closed:** voting rejected, nothing can be edited. The public page (same QR) shows the results.
+  It can be reopened if it was closed by mistake.
+- Ballots may be partial: a device can return later to vote in the categories it skipped.
 
 ## API
 
@@ -65,10 +71,11 @@ draft ──open──► open ──close──► closed
 |--------|-----------------------------------------------|----------------------------------|
 | POST   | `/api/admin/login`                            | `{ email, password }` → sets session cookie |
 | POST   | `/api/admin/logout`                           | Clears the session cookie        |
+| GET    | `/api/admin/session`                          | 200 if signed in, otherwise 401  |
 | GET    | `/api/admin/campaigns`                        | List campaigns                   |
 | POST   | `/api/admin/campaigns`                        | Create campaign `{ name }`       |
 | GET    | `/api/admin/campaigns/:id`                    | Campaign, categories, candidates, and live counts |
-| POST   | `/api/admin/campaigns/:id/status`             | `{ status: "open" \| "closed" }` |
+| POST   | `/api/admin/campaigns/:id/status`             | `{ status: "open" \| "closed" }` (follows the lifecycle; 409 otherwise) |
 | DELETE | `/api/admin/campaigns/:id`                    | Delete campaign                  |
 | POST   | `/api/admin/campaigns/:id/categories`         | Add category `{ name }`          |
 | DELETE | `/api/admin/categories/:id`                   | Remove category                  |
@@ -85,8 +92,19 @@ The back office polls `GET /api/admin/campaigns/:id` every few seconds to show l
   `vc_admin = <expiresAt>.<HMAC-SHA256(SESSION_SECRET, expiresAt)>` with the attributes
   `HttpOnly; Secure; SameSite=Strict; Path=/api/admin`, valid for 12 hours.
 - The `requireAdmin` middleware verifies the HMAC and the expiry on every admin route.
-- Because the cookie is `SameSite=Strict` and the API only accepts JSON, a separate CSRF
-  token is not needed.
+- `Secure` is set when served over HTTPS (production); plain `http://localhost` omits it so local dev works.
+
+## Security
+
+| Threat | Defense |
+|---|---|
+| SQL injection | Only `prepare(…).bind(…)` with `?` placeholders; all SQL in `lib/db.ts`; inputs validated first (`lib/validate.ts`). |
+| CSRF | Admin cookie `SameSite=Strict`; writes accept only `application/json`; Hono `csrf()` rejects cross-site form posts without a same-origin `Origin`/`Sec-Fetch-Site`. |
+| Cross-origin reads | No CORS headers, so the browser blocks other sites from reading API responses. |
+| XSS (names typed by the admin) | The DOM is built with text nodes only (`src/client/dom.ts`); CSP `script-src 'self'`, no inline scripts or styles (`secureHeaders` in the worker, `public/_headers` for static files). |
+| Cookie theft / forgery | `HttpOnly` cookies, HMAC-signed with `SESSION_SECRET`; a tampered device cookie is replaced with a new one. |
+| Duplicate votes | `UNIQUE(category_id, device_id)`; the batch insert is atomic, so racing requests can't both succeed. |
+| Data leaks while open | The voter ballot contains no counts; results only once closed. API responses are `Cache-Control: no-store`. |
 
 ## One vote per device
 

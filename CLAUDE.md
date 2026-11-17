@@ -31,6 +31,17 @@ A simple web application used to vote during Toastmasters sessions.
 6. **Schema changes are new migrations.** Never edit an applied file in `migrations/`; add
    the next numbered one.
 
+## Security rules (always)
+
+- **SQL:** bound parameters (`?` + `.bind()`) only, and SQL only in `src/worker/lib/db.ts`.
+- **XSS:** browser code builds DOM with `h()` from `src/client/dom.ts` (text nodes). Never use
+  `innerHTML`, `outerHTML`, `insertAdjacentHTML` or `document.write` with any data.
+- **No inline scripts or styles** in HTML (the CSP forbids them). Put CSS in `public/styles.css`;
+  dynamic sizes go through `el.style.x = …` (CSSOM, allowed).
+- **Writes are JSON-only** (`readJson`), behind `csrf()`. Never add CORS headers; the front end is same-origin.
+- **Validate every input** with `src/worker/lib/validate.ts` before it reaches the database.
+- **Cookies** are HttpOnly and signed (`signValue`/`verifyValue`); never trust an unsigned id.
+
 ## Architecture (summary; see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md))
 
 - **Runtime:** a single Cloudflare Worker (`src/worker/index.ts`, Hono router) serves
@@ -43,19 +54,23 @@ A simple web application used to vote during Toastmasters sessions.
 - **One vote per device:** browsers cannot read a MAC address, so each device gets a signed,
   long-lived, HttpOnly device-ID cookie. The database enforces one vote per device per category
   (`UNIQUE(category_id, device_id)`).
-- **Campaign lifecycle:** `draft` → `open` → `closed`. The QR code points to `/v/<slug>`:
-  draft shows "not open yet", open shows the ballot, closed shows the results.
+- **Campaign lifecycle:** `draft` → `open` → `closed` (and `closed` → `open` to reopen). The QR
+  code points to `/v/<slug>`: draft shows "not open yet", open shows the ballot, closed shows the
+  results. Categories and candidates can be added while draft or open, and deleted only in draft.
+- **Plan and status:** [docs/PLAN.md](docs/PLAN.md).
 
 ## Commands
 
 ```sh
+bun run setup               # first time: create .env from the example, install, migrate local D1
 bun install                 # install dependencies
 bun run build               # bundle src/client/*.ts -> public/assets/
 bun run dev                 # build, then wrangler dev (local Worker + local D1)
 bun run db:migrate:local    # apply migrations to local D1
 bun run db:migrate:remote   # apply migrations to production D1
-bun run typecheck           # tsc --noEmit
+bun run typecheck           # tsc for worker code, then for browser code (src/client/tsconfig.json)
 bun test                    # unit tests (pure functions only)
+bun run smoke               # end-to-end test against the running dev server (--keep to inspect)
 bun run deploy              # build, then wrangler deploy
 ```
 
@@ -66,6 +81,10 @@ bunx wrangler secret put ADMIN_EMAIL
 bunx wrangler secret put ADMIN_PASSWORD
 bunx wrangler secret put SESSION_SECRET
 ```
+
+## Before finishing a change
+
+`bun run typecheck && bun test`, then with `bun run dev` running: `bun run smoke`. Update MAP.md.
 
 ## Conventions
 
